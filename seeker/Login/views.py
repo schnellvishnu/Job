@@ -141,25 +141,25 @@ class Loginview(View):
                   return render(request,"Login.html") 
         def post(self,request):
                 # Session.objects.all().delete()
-                if 'loggedinuser' in request.session:
-                        session_uname=request.session.get('loggedinuser')
-                        my_string = ' '.join([str(element) for element in session_uname])
+                # if 'loggedinuser' in request.session:
+                #         session_uname=request.session.get('loggedinuser')
+                #         my_string = ' '.join([str(element) for element in session_uname])
                        
-                        s_obj=Signup_User.objects.filter(username=my_string).values()
-                        print(s_obj[0]['userr_role'])
-                        companyname_var=s_obj[0]['userr_role']
-                        if(companyname_var == 'Employer'):
-                                return redirect("employer_jobs")                   
-                        elif(companyname_var == 'Candidate'):                            
-                                return redirect("list-jobs-candidate")       
-                else:                      
+                #         s_obj=Signup_User.objects.filter(username=my_string).values()
+                #         print(s_obj[0]['userr_role'])
+                #         companyname_var=s_obj[0]['userr_role']
+                #         if(companyname_var == 'Employer'):
+                #                 return redirect("employer_jobs")                   
+                #         elif(companyname_var == 'Candidate'):                            
+                #                 return redirect("list-jobs-candidate")       
+                # else:                      
                         uname=request.POST.get("username")
                         passw= request.POST.get("password") 
                         urole= request.POST.get("userrole")
                         obj=Signup_User.objects.filter(username=uname).values()
-                        loggedinuser=request.session.get('loggedinuser',[])
-                        loggedinuser.insert(0,uname)
-                        request.session['loggedinuser']=loggedinuser
+                        # loggedinuser=request.session.get('loggedinuser',[])
+                        # loggedinuser.insert(0,uname)
+                        # request.session['loggedinuser']=loggedinuser
                         # print('0000',loggedinguser)
                         # print(obj[0]['name'])
                        
@@ -169,11 +169,16 @@ class Loginview(View):
                         if obj:
                                                 
                           if obj[0]['password'] == passw:
-                                            
-                             if obj[0]['userr_role'] == "Employer":
-                                return redirect("employer_jobs")
-                             elif obj[0]['userr_role'] == "Candidate":
-                                return redirect("list-jobs-candidate")                   
+                                                      
+                                request.session['loggedinuser']=uname
+                        
+                       
+                                      
+                                session_pass=request.session.get('loggedinuser')              
+                                if obj[0]['userr_role'] == "Employer":
+                                        return redirect("employer_jobs")
+                                elif obj[0]['userr_role'] == "Candidate":
+                                        return redirect("list-jobs-candidate")                   
                           else:
                              return  HttpResponse("Incorrect Password")                        
                         else:
@@ -185,11 +190,15 @@ class Candidatehomeview(TemplateView):
            template_name = "Candidate-Home.html"  
            
 def signout_view(request):
-        del request.session['loggedinuser']
+        session_uname= request.session.get('loggedinuser')
+        if session_uname == None:
+                return redirect("login")
+        else:                        
+          del request.session['loggedinuser']
         # request.session.flush() #this command will clear all session data 
         # session_password=request.session.get('loggedinpass')
         # print( "iii",session_password)
-        return redirect("login") 
+          return redirect("login") 
                                     
 # def signout_view(request,*args,**kwargs):
                             

@@ -22,42 +22,50 @@ class Add_Candidate_Profileview(UpdateView):
       
 class Candidate_Profileview(View):
           def get(self,request):
-            loggedin_user=request.session.get('loggedinuser')
-            my_string = ' '.join([str(element) for element in  loggedin_user])
-            user_details=Candidate_Profile.objects.filter(username=my_string).values()
-            print(user_details[0]['candidate_name'])
-            return render(request,"Add-candprofile.html",{"job":user_details,"username":my_string}) 
+            loggedin_user=request.session.get('loggedinuser')                    
+            if (loggedin_user == None):
+                return redirect("login")
+            else:                        
+                  loggedin_user=request.session.get('loggedinuser')
+                  # my_string = ' '.join([str(element) for element in  loggedin_user])
+                  user_details=Candidate_Profile.objects.filter(username=loggedin_user).values()
+                  print(user_details[0]['candidate_name'])
+                  return render(request,"Add-candprofile.html",{"job":user_details,"username":loggedin_user}) 
       
 def updateprofile(request, id):
-      obj =Candidate_Profile.objects.get(id=id)
-      obj_data = loader.get_template('Edit-Candidateprofile.html')
-      context = {
-         'jobs': obj,
-      }
-      
-      if request.method =="POST":
-            candidatename=request.POST.get("candidate_name")
-            skills=request.POST.get("skills")
-            experience=request.POST.get("experiance")
-            qualification=request.POST.get("qualification")
-            location=request.POST.get("location")
-            phone=request.POST.get("phone")
-            date=request.POST.get("date")
-            photo=request.FILES['photo'] 
-            age=request.POST.get("age")  
-                                 
-            obj.age=age
-            obj.candidate_name=candidatename
-            obj.location=location
-            obj.qualification=qualification
-            obj.skills=skills
-            obj.phone=phone
-            obj.date=date
-            obj.photo=photo
-            obj.experiance=experience
-            obj.save()
-            return redirect("list-jobs-candidate")
-      return render(request,"Edit-Candidateprofile.html",context)
+      loggedin_user=request.session.get('loggedinuser')                    
+      if (loggedin_user == None):
+            return redirect("login") 
+      else:                     
+            obj =Candidate_Profile.objects.get(id=id)
+            obj_data = loader.get_template('Edit-Candidateprofile.html')
+            context = {
+            'jobs': obj,
+            }
+            
+            if request.method =="POST":
+                  candidatename=request.POST.get("candidate_name")
+                  skills=request.POST.get("skills")
+                  experience=request.POST.get("experiance")
+                  qualification=request.POST.get("qualification")
+                  location=request.POST.get("location")
+                  phone=request.POST.get("phone")
+                  date=request.POST.get("date")
+                  photo=request.FILES['photo'] 
+                  age=request.POST.get("age")  
+                                    
+                  obj.age=age
+                  obj.candidate_name=candidatename
+                  obj.location=location
+                  obj.qualification=qualification
+                  obj.skills=skills
+                  obj.phone=phone
+                  obj.date=date
+                  obj.photo=photo
+                  obj.experiance=experience
+                  obj.save()
+                  return redirect("list-jobs-candidate")
+            return render(request,"Edit-Candidateprofile.html",context)
            
            
                                       
@@ -72,31 +80,35 @@ def updateprofile(request, id):
 #       context_object_name="alljobs"
 class List_Job_View(View):
       def get(self,request):
-            loggedin_user=request.session.get('loggedinuser')
-            my_string = ' '.join([str(element) for element in  loggedin_user])
-            user_details=Signup_User.objects.filter(username=my_string).values()
-           
-            user_name=user_details[0]['name']
-            print("user_name", user_name)
-            cand_profile=Apply_Job.objects.filter(candidate_name=user_name).filter(status="Applied").values('job_code','date')
-           
-            query_length= len(cand_profile)
-            print("ttt", cand_profile)
-          
-            t = []
-                
-            for course in cand_profile:
-                  
-                  k= course['job_code']
-                  
-                  t.append(k)
-                  print("3333",k)
-                  
+            loggedin_user=request.session.get('loggedinuser')                    
+            if (loggedin_user == None):
+                return redirect("login")
+            else:                   
+                  loggedin_user=request.session.get('loggedinuser')
+                  # my_string = ' '.join([str(element) for element in  loggedin_user])
+                  user_details=Signup_User.objects.filter(username=loggedin_user).values()
             
+                  user_name=user_details[0]['name']
+                  print("user_name", user_name)
+                  cand_profile=Apply_Job.objects.filter(candidate_name=user_name).filter(status="Applied").values('job_code','date')
+            
+                  query_length= len(cand_profile)
+                  print("ttt", cand_profile)
+            
+                  t = []
+                  
+                  for course in cand_profile:
+                        
+                        k= course['job_code']
+                        
+                        t.append(k)
+                        print("3333",k)
+                        
+                  
 
-            jobobj=Add_Jobs.objects.exclude(job_code__in=t)
-            print("uuu",jobobj)   
-            return render(request,"cand-home.html",{"alljobs":jobobj,"username":my_string}) 
+                  jobobj=Add_Jobs.objects.exclude(job_code__in=t)
+                  print("uuu",jobobj)   
+                  return render(request,"cand-home.html",{"alljobs":jobobj,"username":loggedin_user}) 
            
       
       
@@ -106,22 +118,29 @@ class List_Job_View(View):
       
 class Applyjob_view(View):
       def get(self,request,job_code):
-           loggedin_user=request.session.get('loggedinuser')
-           my_string = ' '.join([str(element) for element in  loggedin_user])
-           print(job_code)  
-           obj=Add_Jobs.objects.filter(job_code = job_code).values() 
-           job_name=obj[0]['job_name']
-           obj2=Add_Jobs.objects.filter(job_code = job_code).values('description','expirance')
-           print(obj2)
-           for course in obj2:
-                                      
-                  k= course['description']
-                  m=course['expirance'] 
-           print( m)               
-           return render(request,"Apply-job.html",{"job_name": job_name,"job_code":job_code,"username":my_string,"des":k,"exp":m})
+            loggedin_user=request.session.get('loggedinuser')                    
+            if (loggedin_user == None):
+                return redirect("login")
+            else:                      
+                  loggedin_user=request.session.get('loggedinuser')
+                  #      my_string = ' '.join([str(element) for element in  loggedin_user])
+                  print(job_code)  
+                  obj=Add_Jobs.objects.filter(job_code = job_code).values() 
+                  job_name=obj[0]['job_name']
+                  obj2=Add_Jobs.objects.filter(job_code = job_code).values('description','expirance')
+                  print(obj2)
+                  for course in obj2:
+                                                
+                              k= course['description']
+                              m=course['expirance'] 
+                  print( m)               
+                  return render(request,"Apply-job.html",{"job_name": job_name,"job_code":job_code,"username":loggedin_user,"des":k,"exp":m})
 
       def post(self,request,job_code):
                                 
+            loggedin_user=request.session.get('loggedinuser')                    
+            if (loggedin_user == None):
+                return redirect("login")                      
             name=request.POST.get("candidate_name")
             location=request.POST.get("location")
             age=request.POST.get("age")
@@ -169,13 +188,20 @@ class Applyjob_view(View):
             
 class Myjobsview(View):
         def get(self,request):
-            loggedin_user=request.session.get('loggedinuser')
-            my_string = ' '.join([str(element) for element in  loggedin_user]) 
-            details=Signup_User.objects.filter(username=my_string).values()
-            b = details[0]['name']                     
-            cand_profile=Apply_Job.objects.filter(candidate_name= b).values()
-            return render(request,"My-jobs.html",{"obj":cand_profile,"username":my_string})                               
+            loggedin_user=request.session.get('loggedinuser')                    
+            if (loggedin_user == None):
+                return redirect("login")
+            else:                      
+                  loggedin_user=request.session.get('loggedinuser')
+                  # my_string = ' '.join([str(element) for element in  loggedin_user]) 
+                  details=Signup_User.objects.filter(username=loggedin_user).values()
+                  b = details[0]['name']                     
+                  cand_profile=Apply_Job.objects.filter(candidate_name= b).values()
+                  return render(request,"My-jobs.html",{"obj":cand_profile,"username":loggedin_user})                               
 def Myjob_filterview(request):
+      loggedin_user=request.session.get('loggedinuser')                    
+      if (loggedin_user == None):
+            return redirect("login")                      
       if request.method == 'POST':
             name = request.POST.get('name')
             print("name",name)
@@ -183,7 +209,7 @@ def Myjob_filterview(request):
             date=request.POST.get('date')
             print(date)
             loggedin_user=request.session.get('loggedinuser')
-            my_string = ' '.join([str(element) for element in  loggedin_user]) 
+            # my_string = ' '.join([str(element) for element in  loggedin_user]) 
       try:      
             if(name!=""and location !="" and date!=""):
                   obj=Apply_Job.objects.filter(job_name=name).filter(location=location).filter(date=date)
@@ -218,21 +244,25 @@ def Myjob_filterview(request):
       except:
             obj="No Data Found"      
       print(obj)    
-      return render(request,"My-jobs.html",{"obj":obj,"username": my_string})                                         
+      return render(request,"My-jobs.html",{"obj":obj,"username": loggedin_user})                                         
             
 def filterjobview(request):
-      if request.method == 'POST':
-            name = request.POST.get('name')
-            print("name",name)
-            location = request.POST.get('location')
-            exp=request.POST.get('exp')
-      if(name!=""and location !="" and exp!=""):
-              obj=Add_Jobs.objects.filter(job_name=name).filter(location=location).filter(expirance=exp)
-      elif(location =="" and exp ==""):  
-              obj=Add_Jobs.objects.filter(job_name=name)
-      elif(name=="" and exp ==""):                          
-               obj=Add_Jobs.objects.filter(location=location)
-               
-      print(obj)   
-          
-      return render(request,"cand-home.html",{"alljobs":obj})                                                                                          
+      loggedin_user=request.session.get('loggedinuser')                    
+      if (loggedin_user == None):
+            return redirect("login") 
+      else:                     
+            if request.method == 'POST':
+                  name = request.POST.get('name')
+                  print("name",name)
+                  location = request.POST.get('location')
+                  exp=request.POST.get('exp')
+            if(name!=""and location !="" and exp!=""):
+                  obj=Add_Jobs.objects.filter(job_name=name).filter(location=location).filter(expirance=exp)
+            elif(location =="" and exp ==""):  
+                  obj=Add_Jobs.objects.filter(job_name=name)
+            elif(name=="" and exp ==""):                          
+                  obj=Add_Jobs.objects.filter(location=location)
+                  
+            print(obj)   
+            
+            return render(request,"cand-home.html",{"alljobs":obj})                                                                                          
